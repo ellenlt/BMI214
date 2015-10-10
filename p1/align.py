@@ -3,8 +3,8 @@ import sys
 # Aligns two DNA sequences with affine gap penalty, either using global ends-free or local alignment.
 # Accepts two arguments, the input_file and output_file
 # i = row (sequence B), j = col (sequence A)
-print "Input file: '%s'" % sys.argv[1]
-print "Output file: '%s'" % sys.argv[2]
+print("Input file: %s" % sys.argv[1])
+print("Output file: %s" % sys.argv[2])
 
 # Read in input_file
 f = open(sys.argv[1])
@@ -31,15 +31,15 @@ alpha_b = input_file[7].strip()	# Alphabet used for sequence B
 # Initialize scoring matrices M, I_a, and I_b to initial values of 0
 # Sequence A along top (spans columns), Sequence B along left (spans rows)
 # Each cell contains an alignment score and may also contain string pointers to the matrix/matrices that produced the score
-M = [[0 for a in xrange(len(seq_a)+1)] for b in xrange(len(seq_b)+1)]
-I_a = [[0 for a in xrange(len(seq_a)+1)] for b in xrange(len(seq_b)+1)]
-I_b = [[0 for a in xrange(len(seq_a)+1)] for b in xrange(len(seq_b)+1)]
+M = [[0 for a in range(len(seq_a)+1)] for b in range(len(seq_b)+1)]
+I_a = [[0 for a in range(len(seq_a)+1)] for b in range(len(seq_b)+1)]
+I_b = [[0 for a in range(len(seq_a)+1)] for b in range(len(seq_b)+1)]
 
 # Initialize and populate match matrix S
 # Alphabet A along top (spans columns), Alphabet B along left (spans rows)
 # Tells you how many points to assign to a match/mismatch
-S = [[0 for a in xrange(int(alpha_a_size))] for b in xrange(int(alpha_b_size))]
-for i in xrange(int(alpha_a_size)*int(alpha_b_size)):
+S = [[0 for a in range(int(alpha_a_size))] for b in range(int(alpha_b_size))]
+for i in range(int(alpha_a_size)*int(alpha_b_size)):
 	entry = input_file[8+i].split()
 	S[int(entry[1])-1][int(entry[0])-1] = (float(entry[4]))
 
@@ -63,7 +63,7 @@ def findGlobalAligns():
 	# Stores coordinates of highest scoring alignments
 	max_scorers = []
 	# Scan last col of match matrix M
-	for col in xrange(len(seq_a) + 1):
+	for col in range(len(seq_a) + 1):
 		curr_score = computeScores(len(seq_b), col, "M", False)
 		if curr_score > max_score:
 			# New max score
@@ -73,7 +73,7 @@ def findGlobalAligns():
 			# Add to max_scorers
 			max_scorers.append((len(seq_b), col))
 	# Scan last col of match matrix M
-	for row in xrange(len(seq_b)):
+	for row in range(len(seq_b)):
 		curr_score = computeScores(row, len(seq_a), "M", False)
 		if curr_score > max_score:
 			# New max score
@@ -84,8 +84,8 @@ def findGlobalAligns():
 			max_scorers.append((row, len(seq_a)))
 	# Write to file
 	output_file.write(str(max_score) + "\n\n")
-	print max_score
-	print ""
+	print(max_score)
+	print("")
 	return max_scorers
 
 # Finds and prints out the highest local alignment score and
@@ -96,8 +96,8 @@ def findLocalAligns():
 	# Stores coordinates of highest scoring alignments
 	max_scorers = []
 	# Scan entire match matrix M
-	for col in xrange(len(seq_a) + 1):
-		for row in xrange(len(seq_b)):
+	for col in range(len(seq_a) + 1):
+		for row in range(len(seq_b)):
 			curr_score = computeScores(row, col, "M", True)
 			if curr_score > max_score:
 				# New max score
@@ -108,8 +108,8 @@ def findLocalAligns():
 				max_scorers.append((row, col))
 	# Write to file
 	output_file.write(str(max_score) + "\n\n")
-	print max_score
-	print ""
+	print(max_score)
+	print("")
 	return max_scorers
 
 # Recursively computes and returns the alignment score of row i and col j in scoring matrix "curr_matrix"
@@ -167,7 +167,8 @@ def computeScores(i, j, curr_matrix, local):
 			M[i][j] = (0, [])
 		else:
 			max_scorers = []
-			if(round(m_score,2) == round(max_score,2)): max_scorers.append("M")
+			if(round(m_score,2) == round(max_score,2)):
+				max_scorers.append("M")
 			# If pointers trace back to a 0 in both the M and the I_a or I_b matrices, only store the pointer to the M matrix
 			if(round(ia_score,2) == round(max_score,2)):
 				if(type(I_a[i-1][j-1]) is tuple and I_a[i-1][j-1][0] != 0):
@@ -202,7 +203,7 @@ def computeScores(i, j, curr_matrix, local):
 
 		# Find maximum score and create pointers to appropriate score matrices
 		max_score = max(m_score, ia_score)
-		if max_score is 0 and M[i-1][j-1][1] == []:
+		if max_score is 0 and I_a[i][j-1][1] == []:
 			I_a[i][j] = (0, [])
 		else:
 			max_scorers = []
@@ -237,7 +238,7 @@ def computeScores(i, j, curr_matrix, local):
 
 		# Find maximum score and create pointers to appropriate score matrices
 		max_score = max(m_score, ib_score)
-		if max_score is 0 and M[i-1][j-1][1] == []:
+		if max_score is 0 and I_b[i-1][j][1] == []:
 			I_b[i][j] = (0, [])
 		else:
 			max_scorers = []
@@ -275,50 +276,46 @@ def printResults(alignments):
 def printAlignment(point, matrix, align_a, align_b):
 	row = point[0]
 	col = point[1]
-	if row is 0 or col is 0:
-		output_file.writelines(str(align_a)+'\n'+str(align_b)+'\n\n')
-		print align_a
-		print align_b
-		print ""
-	elif matrix == "M":
+	if matrix == "M":
 		if M[row][col][1] == []:
 			output_file.writelines(str(align_a)+'\n'+str(align_b)+'\n\n')
-			print align_a
-			print align_b
-			print ""
+			print(align_a)
+			print(align_b)
+			print("")
 		else:
 			for path in M[row][col][1]:
 				printAlignment( (row-1, col-1), path, seq_a[col-1] + align_a, seq_b[row-1] + align_b)
 	elif matrix == "I_a":
 		if M[row][col][1] == []:
 			output_file.writelines(str(align_a)+'\n'+str(align_b)+'\n\n')
-			print align_a
-			print align_b
-			print ""
+			print(align_a)
+			print(align_b)
+			print("")
 		else:
 			for path in I_a[row][col][1]:
 				printAlignment( (row, col-1), path, seq_a[col-1] + align_a, "_" + align_b)
 	elif matrix == "I_b":
 		if M[row][col][1] == []:
 			output_file.writelines(str(align_a)+'\n'+str(align_b)+'\n\n')
-			print align_a
-			print align_b
-			print ""
+			print(align_a)
+			print(align_b)
+			print("")
 		else:
 			for path in I_b[row][col][1]:
 				printAlignment( (row-1, col), path, "_" + align_a, seq_b[row-1] + align_b)
 
 if int(input_file[2].strip()) == 0:
 	runGlobalAlignment()
-	print "Global"
+	print("Global")
 else:
 	runLocalAlignment()
-	print "Local"
+	print("Local")
 
-"""
-for row in xrange(8):
+
+for row in range(6):
 	string=[]
-	for col in xrange(5):
-		string += I_b[97+row][col]
+	for col in range(5):
+		string += M[97+row][1+col]
 	print string
-	"""
+
+print S[2][14]
