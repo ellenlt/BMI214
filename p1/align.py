@@ -127,9 +127,9 @@ def computeScores(i, j, curr_matrix, local):
 		else:
 			I_b[i][j] = (0,[])
 			return 0
-
 	# Computes score for matrix M
 	elif curr_matrix == "M":
+		# Look to M to compute score
 		if type(M[i-1][j-1]) is not tuple:
 			score = round(computeScores(i-1, j-1, "M", local) + S[alpha_b.index(seq_b[i-1])][alpha_a.index(seq_a[j-1])], 2)
 			# Local alignment never stores negative scores
@@ -141,16 +141,16 @@ def computeScores(i, j, curr_matrix, local):
 			# Local alignment never stores negative scores
 			if local is True and score < 0.0: m_score = 0
 			else: m_score = score
-
+		# Look to I_a to compute score
 		if type(I_a[i-1][j-1]) is not tuple:
 			score = round(computeScores(i-1, j-1, "I_a", local) + S[alpha_b.index(seq_b[i-1])][alpha_a.index(seq_a[j-1])], 2)
 			if local is True and score < 0.0: ia_score = 0
 			else: ia_score = score
 		else:
-			score = round(I_a[i-1][j-1][0] + S[alpha_b.index(seq_b[i-2])][alpha_a.index(seq_a[j-2])], 2)
+			score = round(I_a[i-1][j-1][0] + S[alpha_b.index(seq_b[i-1])][alpha_a.index(seq_a[j-1])], 2)
 			if local is True and score < 0.0: ia_score = 0
 			else: ia_score = score
-
+		# Look to I_b to compute score
 		if type(I_b[i-1][j-1]) is not tuple:
 			score = round(computeScores(i-1, j-1, "I_b", local) + S[alpha_b.index(seq_b[i-1])][alpha_a.index(seq_a[j-1])], 2)
 			if local is True and score < 0.0: ib_score = 0
@@ -162,27 +162,24 @@ def computeScores(i, j, curr_matrix, local):
 
 		# Find maximum score and create pointers to appropriate score matrices
 		max_score = max(m_score, ia_score, ib_score)
-		# If
-		if max_score is 0 and M[i-1][j-1][1] == []:
-			M[i][j] = (0, [])
-		else:
-			max_scorers = []
-			if(round(m_score,2) == round(max_score,2)):
-				max_scorers.append("M")
-			# If pointers trace back to a 0 in both the M and the I_a or I_b matrices, only store the pointer to the M matrix
-			if(round(ia_score,2) == round(max_score,2)):
-				if(type(I_a[i-1][j-1]) is tuple and I_a[i-1][j-1][0] != 0):
-					max_scorers.append("I_a")
-			if(round(ib_score,2) == round(max_score,2) and I_b[i-1][j-1] != 0):
-				if(type(I_b[i-1][j-1]) is tuple and I_b[i-1][j-1][0] != 0):
-					max_scorers.append("I_b")
-			# Store the score and pointers
-			M[i][j] = (max_score, max_scorers)
+		max_scorers = []
+		if(round(m_score,2) == round(max_score,2)):
+			# If there is no improvement from a 0 score and no path to follow, don't store pointer
+			if not (max_score is 0 and M[i-1][j-1][1] == []): max_scorers.append("M")
+		if(round(ia_score,2) == round(max_score,2)):
+			if not (max_score == 0 and I_a[i-1][j-1][1] == []):
+				max_scorers.append("I_a")
+		if(round(ib_score,2) == round(max_score,2)):
+			if not (max_score == 0 and I_b[i-1][j-1][1] == []):
+				max_scorers.append("I_b")
+		# Store the score and pointers
+		M[i][j] = (max_score, max_scorers)
 		
 		return max_score
 
+	# Computes score for matrix I_a
 	elif curr_matrix == "I_a":
-		# Compute scores for M, I_a, and I_b
+		# Look to M to compute score
 		if type(M[i][j-1]) is not tuple:
 			score = round(computeScores(i, j-1, "M", local) - d_b, 2)
 			if local is True and score < 0.0: m_score = 0
@@ -191,7 +188,7 @@ def computeScores(i, j, curr_matrix, local):
 			score = round(M[i][j-1][0] - d_b, 2)
 			if local is True and score < 0.0: m_score = 0
 			else: m_score = score
-
+		# Look to I_a to compute score
 		if type(I_a[i][j-1]) is not tuple:
 			score = round(computeScores(i, j-1, "I_a", local) - e_b, 2)
 			if local is True and score < 0.0: ia_score = 0
@@ -203,21 +200,19 @@ def computeScores(i, j, curr_matrix, local):
 
 		# Find maximum score and create pointers to appropriate score matrices
 		max_score = max(m_score, ia_score)
-		if max_score is 0 and I_a[i][j-1][1] == []:
-			I_a[i][j] = (0, [])
-		else:
-			max_scorers = []
-			if(round(m_score,2) == round(max_score,2)): max_scorers.append("M")
-			# If pointers trace back to a 0 in both the M and the I_a or I_b matrices, only store the pointer to the M matrix
-			if(round(ia_score,2) == round(max_score,2)):
-				if(type(I_a[i][j-1]) is tuple and I_a[i][j-1][0] != 0): max_scorers.append("I_a")
-
-			# Store the score and pointers
-			I_a[i][j] = (max_score, max_scorers)
+		max_scorers = []
+		if(round(m_score,2) == round(max_score,2)):
+			# If there is no improvement from a 0 score and no path to follow, don't store pointer
+			if not (max_score == 0 and M[i][j-1][1] == []): max_scorers.append("M")
+		if(round(ia_score,2) == round(max_score,2)):
+			if not (max_score == 0 and I_a[i][j-1][1] == []): max_scorers.append("I_a")
+		# Store the score and pointers
+		I_a[i][j] = (max_score, max_scorers)
 		return max_score
-		
+	
+	# Computes score for matrix I_b
 	else:
-		# Compute scores for M, I_a, and I_b
+		# Look to M to compute score
 		if type(M[i-1][j]) is not tuple:
 			score = round(computeScores(i-1, j, "M", local) - d_a, 2)
 			if local is True and score < 0.0: m_score = 0
@@ -226,7 +221,7 @@ def computeScores(i, j, curr_matrix, local):
 			score = round(M[i-1][j][0] - d_a, 2)
 			if local is True and score < 0.0: m_score = 0
 			else: m_score = score
-
+		# Look to I_b to compute score
 		if type(I_b[i-1][j]) is not tuple:
 			score = round(computeScores(i-1, j, "I_b", local) - e_a, 2)
 			if local is True and score < 0.0: ib_score = 0
@@ -238,40 +233,21 @@ def computeScores(i, j, curr_matrix, local):
 
 		# Find maximum score and create pointers to appropriate score matrices
 		max_score = max(m_score, ib_score)
-		if max_score is 0 and I_b[i-1][j][1] == []:
-			I_b[i][j] = (0, [])
-		else:
-			max_scorers = []
-			if(round(m_score,2) == round(max_score,2)):
-				max_scorers.append("M")
-			# If pointers trace back to a 0 in both the M and the I_a or I_b matrices, only store the pointer to the M matrix
-			if(round(ib_score,2) == round(max_score,2)): 
-				if(type(I_b[i-1][j]) is tuple and I_b[i-1][j][0] != 0):
-					max_scorers.append("I_b")
-
-			# Store the score and pointers
-			I_b[i][j] = (max_score, max_scorers)
+		max_scorers = []
+		if(round(m_score,2) == round(max_score,2)):
+			# If there is no improvement from a 0 score and no path to follow, don't store pointer
+			if not (max_score == 0 and M[i-1][j][1] == []): max_scorers.append("M")
+		if(round(ib_score,2) == round(max_score,2)): 
+			if not (max_score == 0 and I_b[i-1][j][1] == []): max_scorers.append("I_b")
+		# Store the score and pointers
+		I_b[i][j] = (max_score, max_scorers)
 		return max_score
-
-# trace_from_gap_a(i, j)
-# i = # index of current letter in seq_a, j = # index of current letter in seq_b
-# Base case: If i=0 or j=0, return 0
-# Otherwise, return the maximum of the following:
-# trace_from_match(i-1, j) + d_y
-# trace_from_gap_a(i-1, j) - e_y
-
-# trace_from_gap_b(i, j)
-# i = # index of current letter in seq_a, j = # index of current letter in seq_b
-# Base case: If i=0 or j=0, return 0
-# Otherwise, return the maximum of the following:
-# trace_from_match(i, j-1) + d_x
-# trace_from_gap_b(i, j-1) - e_x
 
 def printResults(alignments):
 	for startpoint in alignments:
 		printAlignment(startpoint, "M", "", "")
 	f.close()
-	output_file.close()
+	output_file.close()	
 
 def printAlignment(point, matrix, align_a, align_b):
 	row = point[0]
@@ -283,8 +259,11 @@ def printAlignment(point, matrix, align_a, align_b):
 			print(align_b)
 			print("")
 		else:
-			for path in M[row][col][1]:
-				printAlignment( (row-1, col-1), path, seq_a[col-1] + align_a, seq_b[row-1] + align_b)
+			if M[row][col][1] == ["M", "I_a", "I_b"] and M[row-1][col-1][0] == 0:
+				printAlignment( (row-1, col-1), "M", seq_a[col-1] + align_a, seq_b[row-1] + align_b)
+			else:
+				for path in M[row][col][1]:
+					printAlignment( (row-1, col-1), path, seq_a[col-1] + align_a, seq_b[row-1] + align_b)
 	elif matrix == "I_a":
 		if M[row][col][1] == []:
 			output_file.writelines(str(align_a)+'\n'+str(align_b)+'\n\n')
@@ -292,8 +271,11 @@ def printAlignment(point, matrix, align_a, align_b):
 			print(align_b)
 			print("")
 		else:
-			for path in I_a[row][col][1]:
-				printAlignment( (row, col-1), path, seq_a[col-1] + align_a, "_" + align_b)
+			if I_a[row][col][1] == ["M", "I_a", "I_b"] and I_a[row][col-1][0] == 0:
+				printAlignment( (row, col-1), "M", seq_a[col-1] + align_a, "_" + align_b)
+			else:
+				for path in I_a[row][col][1]:
+					printAlignment( (row, col-1), path, seq_a[col-1] + align_a, "_" + align_b)
 	elif matrix == "I_b":
 		if M[row][col][1] == []:
 			output_file.writelines(str(align_a)+'\n'+str(align_b)+'\n\n')
@@ -301,8 +283,12 @@ def printAlignment(point, matrix, align_a, align_b):
 			print(align_b)
 			print("")
 		else:
-			for path in I_b[row][col][1]:
-				printAlignment( (row-1, col), path, "_" + align_a, seq_b[row-1] + align_b)
+			if I_b[row][col][1] == ["M", "I_a", "I_b"] and I_b[row-1][col][0] == 0:
+				printAlignment( (row-1, col), "M", "_" + align_a, seq_b[row-1] + align_b)
+			else:
+				for path in I_b[row][col][1]:
+					printAlignment( (row-1, col), path, "_" + align_a, seq_b[row-1] + align_b)
+	
 
 if int(input_file[2].strip()) == 0:
 	runGlobalAlignment()
@@ -310,12 +296,3 @@ if int(input_file[2].strip()) == 0:
 else:
 	runLocalAlignment()
 	print("Local")
-
-
-for row in range(6):
-	string=[]
-	for col in range(5):
-		string += M[97+row][1+col]
-	print string
-
-print S[2][14]
