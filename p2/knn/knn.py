@@ -2,32 +2,32 @@ import sys
 from random import shuffle
 import math
 import itertools
-"""
+
 # Correctly formatted data. Tab-delimited, 1 column per sample, 1 row per feature
-posData = open(sys.argv[1]).readlines()	# Positive samples
-negData = open(sys.argv[2]).readlines()	# Negative samples
-k = sys.argv[3]	# Number of neighbors to consider
-p = sys.argv[4]	# Minimum fraction of neighbors needed to classify a sample as positive
-n = sys.argv[5]	# Number of folds for n-fold validation
+posFile = open(sys.argv[1]).readlines()	# Positive samples
+negFile = open(sys.argv[2]).readlines()	# Negative samples
+k = int(sys.argv[3])	# Number of neighbors to consider
+p = float(sys.argv[4])	# Minimum fraction of neighbors needed to classify a sample as positive
+n = int(sys.argv[5])	# Number of folds for n-fold validation
+
 """
-	
 # Correctly formatted data. Tab-delimited, 1 column per sample, 1 row per feature
 posFile = open("ALL.dat").readlines()	# Positive samples
 negFile = open("AML.dat").readlines()	# Negative samples
 k = 4	# Number of neighbors to consider
 p = 0.51	# Minimum fraction of neighbors needed to classify a sample as positive
 n = 8	# Number of folds for n-fold validation
-	
+"""
 def run():
-	print("k: %s\np: %.2f\nn: %s" % (k, p, n))
 	pos = processData(posFile, 1)
 	neg = processData(negFile, 0)
 	metrics = nfold(pos, neg)
 	evaluatePerformance(metrics)
-	
-# Transforms data with 1 line per feature and tab-delimited samples
-# into a matrix with 1 row per sample and 1 column per feature.
-# The class (pos, neg) is denoted by a binary number in the first column
+
+# processData
+# Input: data with 1 line per feature and tab-delimited samples
+# Output: matrix with 1 row per sample and 1 column per feature.
+		# The class (pos, neg) is denoted by a binary number in the first column
 def processData(data, label):
 	m = []
 	for f in range(len(data)):
@@ -39,8 +39,10 @@ def processData(data, label):
 		sample[0] = label
 	return result
 
+# nfold
 # Implements n-fold cross-validation
-# Returns the total number of TP, FP, TN, and FN in a dictionary
+# Inputs: positive-labeled data, negative-labeled data
+# Outputs: a dictionary containing the total number of TP, FP, TN, and FN
 def nfold(pos, neg):
 	# Randomly divide and combine data into n groups
 	# with equal proportions of pos and neg in each group
@@ -56,9 +58,9 @@ def nfold(pos, neg):
 		labeled.remove(s)
 		labeled = list(itertools.chain(*labeled))
 		predictions = knn(s, labeled)
-		print(predictions)
-		print([i[0] for i in s])
-		print("")
+	#	print(predictions)
+	#	print([i[0] for i in s])
+	#	print("")
 		answer = [i[0] for i in s]
 		TP += sum(i==1 and j==1 for i,j in zip(predictions, answer))
 		FP += sum(i==1 and j==0 for i,j in zip(predictions, answer))
@@ -66,18 +68,32 @@ def nfold(pos, neg):
 		FN += sum(i==0 and j==1 for i,j in zip(predictions, answer))
 	return {'TP':TP, 'FP':FP, 'TN':TN, 'FN':FN}
 
-# Calculates accuracy, sensitivity, and specificity from a 
-# dictionary of TP/FP/TN/FN and prints out results
+# evaluatePerformance
+# Calculates accuracy, sensitivity, and specificity
+# Input: a dictionary of TP/FP/TN/FN
+# Output: prints out parameters, accuracy, sensitivity, and specificity
+#		  to console and a file called knn.out 
 def evaluatePerformance(metrics):
+	output_file = open("knn.out", 'w+')
+	output_file.write("k: %s\np: %.2f\nn: %s\n" % (k, p, n))
+	print("k: %s\np: %.2f\nn: %s" % (k, p, n))
+	
 	sensitivity = metrics['TP'] / (metrics['TP']+metrics['FN'])
 	specificity = metrics['TN'] / (metrics['TN']+metrics['FP'])
 	total = sum(metrics.values())
 	accuracy = (metrics['TP']+metrics['TN']) / total
-	print("TP: %s, FP: %s, TN: %s, FN: %s, total: %s" % (metrics['TP'], metrics['FP'], metrics['TN'], metrics['FN'], total))
-	print("accuracy: %s\nsensitivity: %s\nspecificity: %s" % (accuracy, sensitivity, specificity))
+	
+	output_file.write("accuracy: %.2f\nsensitivity: %.2f\nspecificity: %.2f" % (accuracy, sensitivity, specificity))
+	output_file.close()
+	print("accuracy: %.2f\nsensitivity: %.2f\nspecificity: %.2f" % (accuracy, sensitivity, specificity))
+	#	print("TP: %.2f, FP: %.2f, TN: %.2f, FN: %.2f, total: %s" % (metrics['TP'], metrics['FP'], metrics['TN'], metrics['FN'], total))
 
+
+# knn
 # Implements K-nearest neighbors based on Euclidean distance
-# and returns labels in a vector 
+# Inputs: matrix of labeled and unlabeled data, with samples as rows
+		# and features as columns
+# Outputs: vector of labels for the unlabeled data 
 def knn(unlabeled, labeled):
 	result = []
 	for u in unlabeled:
@@ -106,8 +122,10 @@ def euclidean(v1, v2):
 	result = math.sqrt(result)
 	return result
 
-# Distributes data randomly into n sets as evenly as possible and 
-# returns datasets in a list.  
+# divideData
+# Distributes data randomly into n sets as evenly as possible
+# Inputs: number of sets n and data that is to be divided 
+# Output: n datasets in a list.  
 def divideData(n, data):
 	result = []
 	shuffle(data)
@@ -120,7 +138,7 @@ def divideData(n, data):
 		result[-(1+i)].append(data[-(1+i)])
 	return result
 
-# Combines subsets of data from two sources and returns
+# Combines subsets of data from two sources s1, s2 and returns
 # resulting hybrid subsets in a list
 def combineData(s1, s2):
 	result = []
