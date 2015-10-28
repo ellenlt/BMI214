@@ -10,14 +10,6 @@ k = int(sys.argv[3])	# Number of neighbors to consider
 p = float(sys.argv[4])	# Minimum fraction of neighbors needed to classify a sample as positive
 n = int(sys.argv[5])	# Number of folds for n-fold validation
 
-"""
-# Correctly formatted data. Tab-delimited, 1 column per sample, 1 row per feature
-posFile = open("ALL.dat").readlines()	# Positive samples
-negFile = open("AML.dat").readlines()	# Negative samples
-k = 4	# Number of neighbors to consider
-p = 0.51	# Minimum fraction of neighbors needed to classify a sample as positive
-n = 8	# Number of folds for n-fold validation
-"""
 def run():
 	pos = processData(posFile, 1)
 	neg = processData(negFile, 0)
@@ -83,7 +75,6 @@ def evaluatePerformance(metrics):
 	output_file.write("accuracy: %.2f\nsensitivity: %.2f\nspecificity: %.2f" % (accuracy, sensitivity, specificity))
 	output_file.close()
 	print("accuracy: %.2f\nsensitivity: %.2f\nspecificity: %.2f" % (accuracy, sensitivity, specificity))
-	print("TP: %.2f, FP: %.2f, TN: %.2f, FN: %.2f, total: %s" % (metrics['TP'], metrics['FP'], metrics['TN'], metrics['FN'], total))
 
 
 # knn
