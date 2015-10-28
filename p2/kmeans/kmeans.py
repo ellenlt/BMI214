@@ -27,7 +27,7 @@ def run():
     # Assign genes to clusters
     results = kmeans(data, centroids)
     printResults(results)
-
+    
 def printResults(results):
     output_file = open("kmeans.out", 'w+')
     print("iterations: %d" % results['iterations'])
@@ -41,9 +41,7 @@ def printResults(results):
 # Input: 1) data with samples as rows and conditions/features as columns,
 #        2) list of initial centroids
 # Output: a dictionary containing:
-#     1) A list, where the first element is the number of iterations i
-#         (after the ith iteration, clusters don't change), and the
-#         other elements i are cluster assignments for sample i.
+#     1) A list where element i is the cluster assignments for sample i.
 #     2) The number of iterations it took to reach convergence.
 def kmeans(data, centroids):
     clusterAssignments = []
@@ -134,6 +132,4 @@ def euclidean(v1, v2):
     result = math.sqrt(result)
     return result
 
-run()
-    
-    
+run()   

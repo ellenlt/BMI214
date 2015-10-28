@@ -58,9 +58,6 @@ def nfold(pos, neg):
 		labeled.remove(s)
 		labeled = list(itertools.chain(*labeled))
 		predictions = knn(s, labeled)
-	#	print(predictions)
-	#	print([i[0] for i in s])
-	#	print("")
 		answer = [i[0] for i in s]
 		TP += sum(i==1 and j==1 for i,j in zip(predictions, answer))
 		FP += sum(i==1 and j==0 for i,j in zip(predictions, answer))
@@ -86,7 +83,7 @@ def evaluatePerformance(metrics):
 	output_file.write("accuracy: %.2f\nsensitivity: %.2f\nspecificity: %.2f" % (accuracy, sensitivity, specificity))
 	output_file.close()
 	print("accuracy: %.2f\nsensitivity: %.2f\nspecificity: %.2f" % (accuracy, sensitivity, specificity))
-	#	print("TP: %.2f, FP: %.2f, TN: %.2f, FN: %.2f, total: %s" % (metrics['TP'], metrics['FP'], metrics['TN'], metrics['FN'], total))
+	print("TP: %.2f, FP: %.2f, TN: %.2f, FN: %.2f, total: %s" % (metrics['TP'], metrics['FP'], metrics['TN'], metrics['FN'], total))
 
 
 # knn
