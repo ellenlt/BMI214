@@ -2,23 +2,20 @@ import sys
 import random
 import math
 
-# Correctly formatted data. Tab-delimited, 1 row per gene, 1 column per experimental condition
+# Loading correctly formatted data. Tab-delimited, 1 row per gene, 1 column per experimental condition
 k = int(sys.argv[1])    # Number of centroids
 dataFile = open(sys.argv[2]).readlines()    # Expression data
 maxIters = int(sys.argv[3])    # Max number of iterations
 # Optional parameter specifying a file with predetermined centroids
 if len(sys.argv) > 4:
     centroidsFile = open(sys.argv[4]).readlines()
-    if k > len(centroidsFile): k = len(centroidsFile)   # Choose first k of the provided centroids 
+    if k > len(centroidsFile): k = len(centroidsFile)   # Choose first k of the provided centroids
 
-"""
-# Correctly formatted data. Tab-delimited, 1 row per sample, 1 column per condition
-k = 3    # Number of centroids
-dataFile = open("test.dat").readlines()    # Data
-maxIters = 100    # Max number of iterations
-#centroidsFile = open("yeast_centroids.txt").readlines()    # Optional parameter specifying file with predetermined centroids
-"""
-
+# run
+# Runs the k-means clustering algorithm
+# Input: none
+# Output: prints the number of iterations to console and prints the resulting
+#         cluster assignments to a file called kmeans.out
 def run():
     data = processData(dataFile)
     # Initialize k centroids in matrix
@@ -28,6 +25,15 @@ def run():
     results = kmeans(data, centroids)
     printResults(results)
     
+# printResults
+# Input: a dictionary containing:
+#     1) A list where element i is the cluster assignments for sample i.
+#     2) The number of iterations it took to reach convergence.
+# Output:
+#     1) Prints the number of iterations to console
+#     2) Prints the resulting cluster assignments to a file called kmeans.out
+#          where each row represents the gene. The first column is the gene number
+#          and the second column is the cluster number that the gene was assigned to
 def printResults(results):
     output_file = open("kmeans.out", 'w+')
     print("iterations: %d" % results['iterations'])
@@ -124,7 +130,10 @@ def processData(data):
         result.append(sample)
     return result
 
-# Computes Euclidean distance between two vectors
+# euclidean
+# Computes euclidean distance between two vectors
+# Input: two numerical vectors
+# Output: the euclidean distance (a single number) between the two vectors
 def euclidean(v1, v2):
     result = 0
     for i in range(len(v1)):

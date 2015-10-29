@@ -3,13 +3,18 @@ from random import shuffle
 import math
 import itertools
 
-# Correctly formatted data. Tab-delimited, 1 column per sample, 1 row per feature
+# Load correctly formatted data. Tab-delimited, 1 column per sample, 1 row per feature
 posFile = open(sys.argv[1]).readlines()	# Positive samples
 negFile = open(sys.argv[2]).readlines()	# Negative samples
 k = int(sys.argv[3])	# Number of neighbors to consider
 p = float(sys.argv[4])	# Minimum fraction of neighbors needed to classify a sample as positive
 n = int(sys.argv[5])	# Number of folds for n-fold validation
 
+# run
+# Runs the k-nearest neighbors algorithm
+# Input: none
+# Output: prints out parameters, accuracy, sensitivity, and specificity
+#		  to console and a file called knn.out 
 def run():
 	pos = processData(posFile, 1)
 	neg = processData(negFile, 0)
@@ -19,7 +24,7 @@ def run():
 # processData
 # Input: data with 1 line per feature and tab-delimited samples
 # Output: matrix with 1 row per sample and 1 column per feature.
-		# The class (pos, neg) is denoted by a binary number in the first column
+# 		  The class (pos, neg) is denoted by a binary number in the first column
 def processData(data, label):
 	m = []
 	for f in range(len(data)):
@@ -33,8 +38,9 @@ def processData(data, label):
 
 # nfold
 # Implements n-fold cross-validation
-# Inputs: positive-labeled data, negative-labeled data
-# Outputs: a dictionary containing the total number of TP, FP, TN, and FN
+# Inputs: two matrices containing m rows of samples and n columns of features
+# 		  the first matrix contains the positive-labeled data, the second contains negative-labeled data
+# Output: a dictionary containing the total number of TP, FP, TN, and FN found across the n-folds cross-validation
 def nfold(pos, neg):
 	# Randomly divide and combine data into n groups
 	# with equal proportions of pos and neg in each group
@@ -59,7 +65,7 @@ def nfold(pos, neg):
 
 # evaluatePerformance
 # Calculates accuracy, sensitivity, and specificity
-# Input: a dictionary of TP/FP/TN/FN
+# Input: a dictionary containing the total number of TP,FP,TN,FN found during n-fold cross-validation
 # Output: prints out parameters, accuracy, sensitivity, and specificity
 #		  to console and a file called knn.out 
 def evaluatePerformance(metrics):
@@ -79,9 +85,10 @@ def evaluatePerformance(metrics):
 
 # knn
 # Implements K-nearest neighbors based on Euclidean distance
-# Inputs: matrix of labeled and unlabeled data, with samples as rows
-		# and features as columns
-# Outputs: vector of labels for the unlabeled data 
+# Inputs: two matrices of labeled data and unlabeled data,
+# 		  with samples as rows and features as columns
+# Outputs: vector of labels where the ith entry is the label
+#		   for the ith unlabeled sample
 def knn(unlabeled, labeled):
 	result = []
 	for u in unlabeled:
@@ -102,7 +109,10 @@ def knn(unlabeled, labeled):
 		else: result.append(0)
 	return result
 
+# euclidean
 # Computes euclidean distance between two vectors
+# Input: two vectors containing strings of numbers
+# Output: the euclidean distance (a single number) between the two vectors
 def euclidean(v1, v2):
 	result = 0
 	for i in range(len(v1)):
@@ -112,8 +122,11 @@ def euclidean(v1, v2):
 
 # divideData
 # Distributes data randomly into n sets as evenly as possible
-# Inputs: number of sets n and data that is to be divided 
-# Output: n datasets in a list.  
+# Inputs:
+#	1) Specified number of sets to divide into (n)
+#	2) The data that is to be divided, where rows are samples
+# Output: a list containing n datasets, where each element of the list is
+#		  a dataset (matrix)
 def divideData(n, data):
 	result = []
 	shuffle(data)
@@ -126,8 +139,15 @@ def divideData(n, data):
 		result[-(1+i)].append(data[-(1+i)])
 	return result
 
+# combineData
 # Combines subsets of data from two sources s1, s2 and returns
 # resulting hybrid subsets in a list
+# Input:
+# 		1) s1, a list of datasets. Each element in this list contains a set of data (matrices)
+#		2) s2, another list of datasets that is the same length as s1. However, the size of the sets of data
+#			need not be the same.
+# Output: a single list where the ith element is a dataset (matrix) that includes both the ith dataset
+#			from s1 and the ith dataset from s2
 def combineData(s1, s2):
 	result = []
 	for i in range(len(s1)):
