@@ -52,7 +52,8 @@ def nfold(pos, neg):
 	TP=0; FP=0; TN=0; FN=0;
 	for s in dataSets:
 		# Merge all the other "labeled" sets
-		labeled = dataSets.copy()
+		#labeled = dataSets.copy()
+		labeled = dataSets[:]
 		labeled.remove(s)
 		labeled = list(itertools.chain(*labeled))
 		predictions = knn(s, labeled)
@@ -73,10 +74,10 @@ def evaluatePerformance(metrics):
 	output_file.write("k: %s\np: %.2f\nn: %s\n" % (k, p, n))
 	print("k: %s\np: %.2f\nn: %s" % (k, p, n))
 	
-	sensitivity = metrics['TP'] / (metrics['TP']+metrics['FN'])
-	specificity = metrics['TN'] / (metrics['TN']+metrics['FP'])
+	sensitivity = float(metrics['TP']) / float(metrics['TP']+metrics['FN'])
+	specificity = float(metrics['TN']) / float(metrics['TN']+metrics['FP'])
 	total = sum(metrics.values())
-	accuracy = (metrics['TP']+metrics['TN']) / total
+	accuracy = float(metrics['TP']+metrics['TN']) / float(total)
 	
 	output_file.write("accuracy: %.2f\nsensitivity: %.2f\nspecificity: %.2f" % (accuracy, sensitivity, specificity))
 	output_file.close()
@@ -105,7 +106,7 @@ def knn(unlabeled, labeled):
 		nearest = nearest[0:k]
 		# Label using majority vote
 		numPos = sum(x[1] for x in nearest)
-		if numPos/k >= p: result.append(1)
+		if float(numPos)/float(k) >= p: result.append(1)
 		else: result.append(0)
 	return result
 

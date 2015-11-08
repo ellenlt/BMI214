@@ -1,6 +1,6 @@
 k: 10
-p: 1.00
+p: 0.05
 n: 4
-accuracy: 0.71
-sensitivity: 0.52
-specificity: 1.00
+accuracy: 0.62
+sensitivity: 1.00
+specificity: 0.04
