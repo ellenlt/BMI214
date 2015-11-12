@@ -1,7 +1,19 @@
+import sys
 import numpy as np
 import argparse
+import time
+start_time = time.time()
 
 # Current runtime: 2 min 45 sec
+
+# generateSimulation is the wrapper function that runs through a molecular dynamics
+# simulation and writes the resulting .rvc and .erg files
+# Input: parameters from console (see initParams function)
+# Output: prints resulting .rvc and .erg files
+def generateSimulation():
+    params = initParams()
+    initialInfo = initMolecule(params)
+    stepThruSimulation(params, initialInfo)
 
 # initParams gets and processes the desired parameters from the console, and sets defaults as needed
 # Input: none
@@ -39,16 +51,14 @@ def initParams():
     # Return a dictionary with all parameters
     return {'iF':iF,'kB':kB, 'kN':kN, 'nbCutoff':nbCutoff, 'm':m, 'dt':dt, 'n':n, 'out':out}
 
-
-def generateSimulation():
-    params = initParams()
-    initialInfo = initMolecule(params)
-    stepThruSimulation(params, initialInfo)
-    
+# stepThruSimulation steps through specified number of iterations and updates the positions, 
+# velocities, and energies of the atoms to eventually generate the .rvc and .erg files
 # Inputs:
-#    1) a dictionary containing:
+#    2) a dictionary containing:
+#        - iF: Input filename, including directory and extension (string)
 #        - kB: Spring constant for bonds (float)
 #        - kN: Spring constant for non-bonds (float)
+#        - nbCutoff: Distance within which non-bonded atoms have interactions (float)
 #        - m: Atom mass for all atoms (float)
 #        - dt: Length of timestep (float)
 #        - n: Number of timesteps to iterate (int)
@@ -68,21 +78,33 @@ def generateSimulation():
 #                    8) z-component of force exerted on atom 1 by atom 2
 #         - nonbonds: identical to "bonds" above, except values are for non-bonded atom pairs
 #         - connectivities: nx1 tab-delimited array of strings where each row contains the ID's of all atoms bonded to that atom
+#         - temp: temperature at which the initial rvc's were measured (string: "T=...")
+#         - name: name of protein/molecule that is being simulated (string: "proteinName:")
 def stepThruSimulation(params, molecule):
     # Unpack dictionary inputs into local variables (at time = t)
-    positions=molecule['positions']; velocities=molecule['velocities']; bonds=molecule['bonds'];nonbonds=molecule['nonbonds'];connectivities=molecule['connectivities']
-    dt=params['dt']; n=params['n']; kB=params['kB']; kN=params['kN']; m=params['m'];out=params['out']
+    positions=molecule['positions']; velocities=molecule['velocities']; bonds=molecule['bonds'];nonbonds=molecule['nonbonds'];
+    connectivities=molecule['connectivities']; temp=molecule['temp']; proteinName=molecule['name']
+    dt=params['dt']; n=params['n']; kB=params['kB']; kN=params['kN']; m=params['m'];out=params['out'];nbCutoff=params['nbCutoff']
     
     numAtoms = len(velocities)
-    # nx3 Numpy ndarrays containing the x, y, and z components of force and acceleration for all n atoms
+    initialEnergy = 0
+    
+    print 0
+    print "17-96        298-385"
+    print "%.4f\t%.4f" % (np.linalg.norm(positions[17-1] - positions[96-1]), np.linalg.norm(positions[298-1] - positions[385-1]))
+    
+    # nx3 Numpy ndarrays containing the x, y, z components of force and acceleration for all n atoms
     # Initialize to zero. (time = t)
     forces = np.zeros([numAtoms, 3]); accelerations = np.zeros([numAtoms, 3])
-    
+        
     # Create output files
-    ergFile = open(out + "_out.erg", 'w+'); ergFile.write("# step\tE_k\tE_b\tE_nB\tE_tot\n")
-    rvcFile = open(out + "_out.rvc", 'w+'); rvcFile.writelines(open(params['iF']).readline())
-    
-    for i in range(1,n+1):
+#    ergFile = open(out + "_out.erg", 'w+'); ergFile.write("# step\tE_k\tE_b\tE_nB\tE_tot\n")
+#    rvcFile = open(out + "_out.rvc", 'w+')
+#    rvcFile.write("# %s\tkB=%.1f\tkN=%.1f\tnbCutoff=%.2f\tdt=%.4f\tmass=%.1f\t%s\n" % (proteinName,kB,kN,nbCutoff,dt,m,temp))
+#    inputData = open(params['iF']).readlines()    
+#    rvcFile.writelines(inputData[1:])
+     
+    for i in range(1,n+1):      # Iterate n times
         # Update velocities at time = t+0.5dt*i for each atom
         # v_(t+0.5dt) = v_t + 1/2 * a_t * dt
         velocities = velocities + accelerations*0.5*dt  
@@ -114,25 +136,34 @@ def stepThruSimulation(params, molecule):
         for atomID in range(1,numAtoms+1): forces[atomID-1] = totalForceOnAtom(atomID, bonds, nonbonds)
         # Update accelerations and velocities on each atom (time = t+dt*i)
         accelerations = forces/m; velocities = velocities + 0.5*accelerations*dt
-        
-        # Every 1 timestep, write appropriate output to erg file
+        if i%10==0:
+            print i
+            print "17-96        298-385"
+            print "%.4f\t%.4f" % (np.linalg.norm(positions[17-1] - positions[96-1]), np.linalg.norm(positions[298-1] - positions[385-1]))
+"""      
+        # Every 1 timestep, calculate energies and write output to .erg file
         totalKineticEnergy = (0.5*m*velocities**2).sum()
         totalEnergyOfBonds = sum(bonds[:,4])
         totalEnergyOfNonbonds = sum(nonbonds[:,4])
         totalEnergy = totalKineticEnergy + totalEnergyOfBonds + totalEnergyOfNonbonds
+        # Terminate code if energies overflow
+        if i==1: initialEnergy=totalEnergy
+        if totalEnergy/initialEnergy > 10**1 or totalEnergy/initialEnergy < 10**-1: sys.exit()
+        # Otherwise, write output to .erg file
         ergFile.write("%d\t%.1f\t%.1f\t%.1f\t%.1f\n" % (i, totalKineticEnergy, totalEnergyOfBonds, totalEnergyOfNonbonds, totalEnergy))
+
         
-        # Every 10 timesteps, write appropriate output to rvc files 
+        # Every 10 timesteps, write appropriate output to .rvc files 
         if i%10==0:
             rawOutput = np.c_[positions, velocities]
             output = np.array(["%.4f" % w for w in rawOutput.reshape(rawOutput.size)])
             output = output.reshape(rawOutput.shape)
             output = np.c_[range(1,numAtoms+1), output, connectivities]
             np.savetxt(rvcFile, output, fmt='%s', delimiter='\t', newline='\n', header='#At time step %d,energy = %.3fkJ' % (i, totalEnergy), comments='')
-    
+            
     ergFile.close()
     rvcFile.close()
-    
+"""    
 # Calculates x, y, and z components of the total force on a given atom 
 # by summing over the individual forces from each bond/nonbond that the atom is involved with
 # Inputs:
@@ -183,8 +214,12 @@ def totalForceOnAtom(atomID, bonds, nonbonds):
 #                    8) z-component of force exerted on atom 1 by atom 2
 #         - nonbonds: identical to "bonds" above, except values are for non-bonded atom pairs
 #         - connectivities: nx1 tab-delimited array of strings where each row contains the ID's of all atoms bonded to that atom
+#         - temp: temperature at which the initial rvc's were measured (string: "T=...")
+#         - name: name of protein/molecule that is being simulated (string: "proteinName:")
 def initMolecule(params):
     data = open(params['iF']).readlines()
+    # Name of protein and temperature of simulation
+    temp = (data[0].split())[-1];    proteinName = (data[0].split())[1]
     numAtoms = len(data)-1
     # x, y, and z coordinates and velocities
     positions = np.empty([numAtoms, 3]); velocities = np.empty([numAtoms, 3])
@@ -217,6 +252,10 @@ def initMolecule(params):
     # Convert to Numpy ndarrays
     bonds = np.array(bonds); nonbonds = np.array(nonbonds);
     connectivities = ['\t'.join(str(connectedAtom) for connectedAtom in atom) for atom in connectivities]
-    return {'positions':positions, 'velocities':velocities, 'bonds':bonds, 'nonbonds':nonbonds, 'connectivities':connectivities}
+    return {'positions':positions, 'velocities':velocities, 'bonds':bonds, 'nonbonds':nonbonds, 'connectivities':connectivities, 'temp':temp, 'name':proteinName}
         
 generateSimulation()
+print("--- %s seconds ---" % (time.time() - start_time))
+
+#with np.errstate(multiply='warn'):
+#    sys.exit()
