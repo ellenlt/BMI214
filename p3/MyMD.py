@@ -1,10 +1,8 @@
 import sys
 import numpy as np
 import argparse
-import time
-start_time = time.time()
-
-# Current runtime: 2 min 45 sec
+#import time
+#start_time = time.time()
 
 # generateSimulation is the wrapper function that runs through a molecular dynamics
 # simulation and writes the resulting .rvc and .erg files
@@ -89,20 +87,20 @@ def stepThruSimulation(params, molecule):
     numAtoms = len(velocities)
     initialEnergy = 0
     
-    print 0
-    print "17-96        298-385"
-    print "%.4f\t%.4f" % (np.linalg.norm(positions[17-1] - positions[96-1]), np.linalg.norm(positions[298-1] - positions[385-1]))
+#    print 0
+#    print "17-96        298-385"
+#    print "%.4f\t%.4f" % (np.linalg.norm(positions[17-1] - positions[96-1]), np.linalg.norm(positions[298-1] - positions[385-1]))
     
     # nx3 Numpy ndarrays containing the x, y, z components of force and acceleration for all n atoms
     # Initialize to zero. (time = t)
     forces = np.zeros([numAtoms, 3]); accelerations = np.zeros([numAtoms, 3])
         
     # Create output files
-#    ergFile = open(out + "_out.erg", 'w+'); ergFile.write("# step\tE_k\tE_b\tE_nB\tE_tot\n")
-#    rvcFile = open(out + "_out.rvc", 'w+')
-#    rvcFile.write("# %s\tkB=%.1f\tkN=%.1f\tnbCutoff=%.2f\tdt=%.4f\tmass=%.1f\t%s\n" % (proteinName,kB,kN,nbCutoff,dt,m,temp))
-#    inputData = open(params['iF']).readlines()    
-#    rvcFile.writelines(inputData[1:])
+    ergFile = open(out + "_out.erg", 'w+'); ergFile.write("# step\tE_k\tE_b\tE_nB\tE_tot\n")
+    rvcFile = open(out + "_out.rvc", 'w+')
+    rvcFile.write("# %s\tkB=%.1f\tkN=%.1f\tnbCutoff=%.2f\tdt=%.4f\tmass=%.1f\t%s\n" % (proteinName,kB,kN,nbCutoff,dt,m,temp))
+    inputData = open(params['iF']).readlines()    
+    rvcFile.writelines(inputData[1:])
      
     for i in range(1,n+1):      # Iterate n times
         # Update velocities at time = t+0.5dt*i for each atom
@@ -136,11 +134,11 @@ def stepThruSimulation(params, molecule):
         for atomID in range(1,numAtoms+1): forces[atomID-1] = totalForceOnAtom(atomID, bonds, nonbonds)
         # Update accelerations and velocities on each atom (time = t+dt*i)
         accelerations = forces/m; velocities = velocities + 0.5*accelerations*dt
-        if i%10==0:
-            print i
-            print "17-96        298-385"
-            print "%.4f\t%.4f" % (np.linalg.norm(positions[17-1] - positions[96-1]), np.linalg.norm(positions[298-1] - positions[385-1]))
-"""      
+#        if i%10==0:
+#            print i
+#            print "17-96        298-385"
+#            print "%.4f\t%.4f" % (np.linalg.norm(positions[17-1] - positions[96-1]), np.linalg.norm(positions[298-1] - positions[385-1]))
+      
         # Every 1 timestep, calculate energies and write output to .erg file
         totalKineticEnergy = (0.5*m*velocities**2).sum()
         totalEnergyOfBonds = sum(bonds[:,4])
@@ -151,8 +149,7 @@ def stepThruSimulation(params, molecule):
         if totalEnergy/initialEnergy > 10**1 or totalEnergy/initialEnergy < 10**-1: sys.exit()
         # Otherwise, write output to .erg file
         ergFile.write("%d\t%.1f\t%.1f\t%.1f\t%.1f\n" % (i, totalKineticEnergy, totalEnergyOfBonds, totalEnergyOfNonbonds, totalEnergy))
-
-        
+              
         # Every 10 timesteps, write appropriate output to .rvc files 
         if i%10==0:
             rawOutput = np.c_[positions, velocities]
@@ -163,7 +160,8 @@ def stepThruSimulation(params, molecule):
             
     ergFile.close()
     rvcFile.close()
-"""    
+
+   
 # Calculates x, y, and z components of the total force on a given atom 
 # by summing over the individual forces from each bond/nonbond that the atom is involved with
 # Inputs:
@@ -255,7 +253,4 @@ def initMolecule(params):
     return {'positions':positions, 'velocities':velocities, 'bonds':bonds, 'nonbonds':nonbonds, 'connectivities':connectivities, 'temp':temp, 'name':proteinName}
         
 generateSimulation()
-print("--- %s seconds ---" % (time.time() - start_time))
-
-#with np.errstate(multiply='warn'):
-#    sys.exit()
+#print("--- %s seconds ---" % (time.time() - start_time))
