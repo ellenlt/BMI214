@@ -1,25 +1,22 @@
-'''
-This program generates the bootstrap p-value for the comparison of two proteins.
-Example function call:
-    pvalue.py -n <INT> -r <INT> <drugs.csv> <targets.csv> <proteinA> <proteinB>
-Inputs:
-    n: number of bootstrap iterations (default = 100)
-    r: seed for pseudo-random number generator (default = 214)
-    drugs.csv: file containing drug information. One row per drug.
-        Columns are the DrugBank Database ID, generic name, and 
-        2D fingerprint (space-delimited features)
-    targets.csv: file containing a drug target information. One row per drug.
-        Columns are the drug's database ID, 
-        and the drug target's UniProt accession number and ID/name
-    proteinA and proteinB: UniProt accession numbers of the two proteins that are being compared
-Output:
-    Bootstrap p-value as a float
-'''
+# This program generates the bootstrap p-value for the comparison of two proteins.
+# Example function call:
+#     pvalue.py -n <INT> -r <INT> <drugs.csv> <targets.csv> <proteinA> <proteinB>
+# Inputs:
+#     n: number of bootstrap iterations (optional; default = 100)
+#     r: seed for pseudo-random number generator (optional; default = 214)
+#     drugs.csv: file containing drug information. One row per drug.
+#         Columns are the DrugBank Database ID, generic name, and 
+#         2D fingerprint (space-delimited features)
+#     targets.csv: file containing a drug target information. One row per drug.
+#         Columns are the drug's database ID, 
+#         the drug target's UniProt accession number and the drug target's ID/name
+#     proteinA and proteinB: UniProt accession numbers of the two proteins that are being compared
+# Output:
+#     Bootstrap p-value as a float
 
-import utilities as util
+
+import chemoUtils as util
 import argparse
-#import time
-#start_time = time.time()
 
 # Prints the bootstrap p value for two proteins
 # Input: command line arguments (see header comments)
@@ -30,14 +27,23 @@ def printBootstrapPValue():
                                    params['fingerprints'], params['ligandSets'],
                                    params['proteinA'], params['proteinB'])
 
-# Initializes all parameters needed
-# Input: none; uses arguments supplied to the command line (see header comments)
+# Get all necessary parameters from the command line to run printBootstrapPValue
+# Input: none; uses arguments supplied to the command line, which consist of:
+#     n: number of bootstrap iterations (optional; default = 100)
+#     r: seed for pseudo-random number generator (optional; default = 214)
+#     drugs.csv: file containing drug information. One row per drug.
+#         Columns are the DrugBank Database ID, generic name, and 
+#         2D fingerprint (space-delimited features)
+#     targets.csv: file containing a drug target information. One row per drug.
+#         Columns are the drug's database ID, 
+#         the drug target's UniProt accession number and the drug target's ID/name
+#     proteinA and proteinB: UniProt accession numbers of the two proteins that are being compared
 # Output: a dictionary of parameters containing:
 #        n: number of iterations
 #        r: seed for random number generator
 #        fingerprints: dictionary that maps DrugBank Database IDs -> drug fingerprint (set of strings)
 #        ligandSets: dictionary mapping protein/drug target accession numbers (strings) ->
-#                    ligand sets or drugs that they bind to (the drug database ID as a string)
+#                    ligand sets, aka sets containing all the drugs that they bind to (the drug database ID as a string)
 #        proteinA and proteinB: UniProt accession numbers as strings
 def initParams():
     parser = argparse.ArgumentParser()
@@ -57,4 +63,3 @@ def initParams():
             'proteinA':args.proteinA, 'proteinB':args.proteinB}
 
 printBootstrapPValue()
-#print("--- %s seconds ---" % (time.time() - start_time))
