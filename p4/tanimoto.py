@@ -18,8 +18,8 @@ Output:
 """
 import sys
 import utilities as util
-import time
-start_time = time.time()
+#import time
+#start_time = time.time()
 
 '''
 Inputs:
@@ -27,16 +27,15 @@ Inputs:
     targetsfile: filename of csv containing a drug target information
     outputfile: filename of the output csv file
  Outputs:
-    Writes to csv file the Tanimoto similarity scores for all drug pairs where the
+    A csv file containing the Tanimoto similarity scores for all drug pairs where the
     first two columns are the DrugBank Database IDs, the third is the Tanimoto score (6-point float),
     and the fourth is a binary number indicating whether the drugs share a target (1) or not (0)
     The list is sorted by col1 and then by col 2
 '''
 def tanimotoScoresForAllDrugPairs(drugsfile, targetsfile, outputfile):
-    [drugIDs, fingerprints] = util.readDrugData(drugsfile)
-    targets = util.readCsvData(targetsfile)
-    #print("--- %s seconds --- Finished loading data" % (time.time() - start_time))
-    util.computeAllTanimotoScores(drugIDs, fingerprints, targets, outputfile)
+    fingerprints = util.readDrugData(drugsfile)
+    [targetSets, ligandSets] = util.readTargetData(targetsfile, fingerprints.keys())
+    util.computeAllTanimotoScores(fingerprints, targetSets, outputfile)
 
 tanimotoScoresForAllDrugPairs(sys.argv[1],sys.argv[2],sys.argv[3])
-print("--- %s seconds --- Complete" % (time.time() - start_time))
+#print("--- %s seconds --- Complete" % (time.time() - start_time))

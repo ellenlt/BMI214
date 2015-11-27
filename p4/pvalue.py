@@ -18,13 +18,16 @@ Output:
 
 import utilities as util
 import argparse
-import time
-start_time = time.time()
+#import time
+#start_time = time.time()
 
+# Prints the bootstrap p value for two proteins
+# Input: command line arguments (see header comments)
+# Output: bootstrap p value as a float
 def printBootstrapPValue():
     params = initParams()
     print util.calculateBootstrapPValue(params['n'], params['r'],
-                                   params['drugIDs'], params['fingerprints'], params['targets'], 
+                                   params['fingerprints'], params['ligandSets'],
                                    params['proteinA'], params['proteinB'])
 
 # Initializes all parameters needed
@@ -32,10 +35,9 @@ def printBootstrapPValue():
 # Output: a dictionary of parameters containing:
 #        n: number of iterations
 #        r: seed for random number generator
-#        drugs: Python 2D list containing drug information. One row per drug.
-#            Columns are the DrugBank Database ID, generic name, and 2D fingerprint (space-delimited features)
-#        targets: Numpy array of strings containing drug target information, where
-#                the columns are the drug database ID, target UniProt accession number and target ID/name.
+#        fingerprints: dictionary that maps DrugBank Database IDs -> drug fingerprint (set of strings)
+#        ligandSets: dictionary mapping protein/drug target accession numbers (strings) ->
+#                    ligand sets or drugs that they bind to (the drug database ID as a string)
 #        proteinA and proteinB: UniProt accession numbers as strings
 def initParams():
     parser = argparse.ArgumentParser()
@@ -47,9 +49,12 @@ def initParams():
     parser.add_argument('proteinB', type=str)
     
     args = parser.parse_args()
-    [drugIDs, fingerprints] = util.readDrugData(args.drugs)
+    fingerprints = util.readDrugData(args.drugs)
+    [targetSets, ligandSets] = util.readTargetData(args.targets, fingerprints.keys())
     # Return a dictionary with all parameters
-    return {'n':args.n,'r':args.r, 'drugIDs':drugIDs, 'fingerprints':fingerprints, 'targets':util.readCsvData(args.targets), 'proteinA':args.proteinA, 'proteinB':args.proteinB}
+    return {'n':args.n,'r':args.r, 
+            'fingerprints':fingerprints, 'ligandSets':ligandSets, 
+            'proteinA':args.proteinA, 'proteinB':args.proteinB}
 
 printBootstrapPValue()
-print("--- %s seconds ---" % (time.time() - start_time))
+#print("--- %s seconds ---" % (time.time() - start_time))
