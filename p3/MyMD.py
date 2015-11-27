@@ -87,8 +87,8 @@ def stepThruSimulation(params, molecule):
     numAtoms = len(velocities)
     initialEnergy = 0
     
-#    print 0
-#    print "17-96        298-385"
+
+#    print "17-96   298-385"
 #    print "%.4f\t%.4f" % (np.linalg.norm(positions[17-1] - positions[96-1]), np.linalg.norm(positions[298-1] - positions[385-1]))
     
     # nx3 Numpy ndarrays containing the x, y, z components of force and acceleration for all n atoms
@@ -134,10 +134,8 @@ def stepThruSimulation(params, molecule):
         for atomID in range(1,numAtoms+1): forces[atomID-1] = totalForceOnAtom(atomID, bonds, nonbonds)
         # Update accelerations and velocities on each atom (time = t+dt*i)
         accelerations = forces/m; velocities = velocities + 0.5*accelerations*dt
-#        if i%10==0:
-#            print i
-#            print "17-96        298-385"
-#            print "%.4f\t%.4f" % (np.linalg.norm(positions[17-1] - positions[96-1]), np.linalg.norm(positions[298-1] - positions[385-1]))
+        if i%10==0:
+            print "%.4f\t%.4f" % (np.linalg.norm(positions[17-1] - positions[96-1]), np.linalg.norm(positions[298-1] - positions[385-1]))
       
         # Every 1 timestep, calculate energies and write output to .erg file
         totalKineticEnergy = (0.5*m*velocities**2).sum()
